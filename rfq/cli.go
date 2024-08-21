@@ -22,6 +22,8 @@ const (
 type CliConfig struct {
 	PriceOracleAddress string `long:"priceoracleaddress" description:"Price oracle gRPC server address (rfqrpc://<hostname>:<port>). To use the integrated mock, use the following value: use_mock_price_oracle_service_promise_to_not_use_on_mainnet"`
 
+	AcceptPriceDeviationPpm uint64 `long:"acceptpricedeviationppm" description:"the price deviation in parts per million that is accepted by the RFQ negotiator. Example :5% (50,000 ppm)."`
+
 	SkipAcceptQuotePriceCheck bool `long:"skipacceptquotepricecheck" description:"Accept any price quote returned by RFQ peer, skipping price validation"`
 
 	MockOracleAssetsPerBTC uint64 `long:"mockoracleassetsperbtc" description:"Mock price oracle static asset units per BTC rate (for example number of USD cents per BTC if one asset unit represents a USD cent); whole numbers only, use either this or mockoraclesatsperasset depending on required precision"`
@@ -81,6 +83,18 @@ func (c *CliConfig) Validate() error {
 	// service address then it must be a valid gRPC address.
 	if c.PriceOracleAddress != "" &&
 		c.PriceOracleAddress != MockPriceOracleServiceAddress {
+
+		_, err := ParsePriceOracleAddress(c.PriceOracleAddress)
+		if err != nil {
+			return fmt.Errorf("invalid price oracle service URI "+
+				"address: %w", err)
+		}
+	}
+
+	// Ensure that if the price oracle address not the mock price oracle
+	// service address then it must be a valid gRPC address.
+	if c.AcceptPriceDeviationPpm != "" &&
+		c.AcceptPriceDeviationPpm != MockPriceOracleServiceAddress {
 
 		_, err := ParsePriceOracleAddress(c.PriceOracleAddress)
 		if err != nil {

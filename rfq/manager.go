@@ -75,6 +75,10 @@ type ManagerCfg struct {
 	// into the manager once lnd and tapd are hooked together.
 	AliasManager ScidAliasManager
 
+	// The price deviation in parts per million that is accepted by the RFQ negotiator.
+	// Example :5% (50,000 ppm). ==>50,000/1,000,000 = 5%
+	AcceptPriceDeviationPpm uint64
+
 	// SkipAcceptQuotePriceCheck is a flag that, when set, will cause the
 	// RFQ negotiator to skip price validation on incoming quote accept
 	// messages (this means that the price oracle will not be queried).
@@ -220,13 +224,18 @@ func (m *Manager) startSubsystems(ctx context.Context) error {
 			"peer message stream handler: %w", err)
 	}
 
+	// Set DefaultAcceptPriceDeviationPpm if not set.
+	if m.cfg.AcceptPriceDeviationPpm < 0 {
+		m.cfg.AcceptPriceDeviationPpm = DefaultAcceptPriceDeviationPpm
+	}
+
 	// Initialise and start the quote negotiator.
 	m.negotiator, err = NewNegotiator(
 		// nolint: lll
 		NegotiatorCfg{
 			PriceOracle:               m.cfg.PriceOracle,
 			OutgoingMessages:          m.outgoingMessages,
-			AcceptPriceDeviationPpm:   DefaultAcceptPriceDeviationPpm,
+			AcceptPriceDeviationPpm:   m.cfg.AcceptPriceDeviationPpm,
 			SkipAcceptQuotePriceCheck: m.cfg.SkipAcceptQuotePriceCheck,
 			ErrChan:                   m.subsystemErrChan,
 		},

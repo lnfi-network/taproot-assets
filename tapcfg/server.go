@@ -374,6 +374,7 @@ func genServerConfig(cfg *Config, cfgLogger btclog.Logger,
 			AliasManager:    lndRouterClient,
 			// nolint: lll
 			SkipAcceptQuotePriceCheck: rfqCfg.SkipAcceptQuotePriceCheck,
+			AcceptPriceDeviationPpm:   rfqCfg.AcceptPriceDeviationPpm,
 			ErrChan:                   mainErrChan,
 		},
 	)
